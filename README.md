@@ -12,9 +12,12 @@ The random oracle that hashes into a large set of prime numbers -- needed in the
 [3] Dan Boneh, Benedikt Bünz, Ben Fisch. "A Survey of Two Verifiable Delay Functions." Cryptology ePrint Archive, 2018. https://crypto.stanford.edu/~dabo/pubs/papers/VDFsurvey.pdf
 
 
+## Mac Need to brew install openssl@1.1
 ```
-> cd /usr/local/include 
-> ln -s ../opt/openssl/include/openssl .
+For compilers to find openssl@1.1 you may need to set:
+  export LDFLAGS="-L/usr/local/opt/openssl@1.1/lib"
+  export CPPFLAGS="-I/usr/local/opt/openssl@1.1/include"
 
-> ln -s /usr/local/Cellar/openssl@1.1 /usr/local/include
+For pkg-config to find openssl@1.1 you may need to set:
+  export PKG_CONFIG_PATH="/usr/local/opt/openssl@1.1/lib/pkgconfig"
 ```

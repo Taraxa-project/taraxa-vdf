@@ -1,18 +1,28 @@
 PKG_FOLDER = $(shell pwd -P)
 LOCAL_FOLDER = ${HOME}/.local
-CC = gcc 
+OPENSSL_HOME = $(LOCAL_FOLDER)
+CC = gcc
 CXX = g++ 
-CPPFLAGS = -I$(LOCAL_FOLDER)/include -std=c++17 # -D_DEBUG 
+CPPFLAGS = -I$(LOCAL_FOLDER)/include -I$(OPENSSL_HOME)/include -std=c++17 # -D_DEBUG
 CFLAGS = 
 CXXFLAGS = -g -O0 -fPIC -fexceptions 
 TARGET = lib/libvdf.so
 
-OPENSSL_LDFLAGS = -L$(LOCAL_FOLDER)/lib -lssl -lcrypto -Wl,-rpath=$(LOCAL_FOLDER)/lib 
+OPENSSL_LDFLAGS = -L$(OPENSSL_HOME)/lib -lssl -lcrypto -Wl,-rpath=$(LOCAL_FOLDER)/lib
 PKG_LDFLAGS = -Llib -lvdf -Wl,-rpath=$(PKG_FOLDER)/lib 
 GMP_LDFLAGS = -L$(LOCAL_FOLDER)/lib -lgmpxx -lgmp -Wl,-rpath=$(LOCAL_FOLDER)/lib 
-MPFR_LDFLAGS = -L$(LOCAL_FOLDER)/lib -lmpfr -Wl,-rpath=$(LOCAL_FOLDER)/lib 
+MPFR_LDFLAGS = -L$(LOCAL_FOLDER)/lib -lmpfr -Wl,-rpath=$(LOCAL_FOLDER)/lib
+
+ifeq ($(shell uname), Darwin)
+	CPPFLAGS = -I$(OPENSSL_HOME)/include -std=c++17
+	OPENSSL_LDFLAGS = -L$(OPENSSL_HOME)/lib -lssl -lcrypto
+	PKG_LDFLAGS = -Llib -lvdf
+	GMP_LDFLAGS = -lgmpxx -lgmp
+	MPFR_LDFLAGS = -lmpfr
+endif
+
 LDFLAGS = $(OPENSSL_LDFLAGS) $(GMP_LDFLAGS) $(MPFR_LDFLAGS) 
-TEST_LDFLAGS = $(PKG_LDFLAGS) $(LDFLAGS) 
+TEST_LDFLAGS = $(PKG_LDFLAGS) $(LDFLAGS)
 
 src = $(wildcard src/*.cpp)
 objtmp = $(subst src/,obj/,$(src))
@@ -25,12 +35,15 @@ timingbin = $(timingsrc:.cpp=.out)
 timingdep = $(timingsrc:.cpp=.d)
 
 .PHONY: all
-all: $(TARGET) test timing
+main: $(TARGET)
+all: main timing
 
 $(TARGET): $(obj)
+	mkdir -p lib
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -shared -o $@ $^ $(LDFLAGS) 
 
 obj/%.o: src/%.cpp
+	mkdir -p obj
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ -c $<
 
 .PHONY: test

@@ -9,7 +9,7 @@ The random oracle that hashes into a large set of prime numbers -- needed in the
 
 [2] Pietrzak, Krzysztof. "Simple verifiable delay functions." 10th Innovations in Theoretical Computer Science Conference (ITCS 2019). Schloss Dagstuhl-Leibniz-Zentrum fuer Informatik, 2018.
 
-[3] Boneh, Dan. "A Survey of Two Verifiable Delay Functions." https://crypto.stanford.edu/~dabo/pubs/papers/VDFsurvey.pdf
+[3] Boneh, Dan. "A Survey of Two Verifiable Delay Functions." 2018. https://crypto.stanford.edu/~dabo/pubs/papers/VDFsurvey.pdf
 
 
 ```

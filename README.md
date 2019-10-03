@@ -13,4 +13,6 @@ The random oracle that hashes into a large set of prime numbers -- needed in the
 ```
 > cd /usr/local/include 
 > ln -s ../opt/openssl/include/openssl .
+
+> ln -s /usr/local/Cellar/openssl@1.1 /usr/local/include
 ```

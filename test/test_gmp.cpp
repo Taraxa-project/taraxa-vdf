@@ -24,8 +24,8 @@ int main(int argc, char* argv[]) {
     uniform_int_distribution<unsigned short> gen_byte(0, 255);
 
     bytevec seed(7);
-    for (byte& si : seed) {
-      si = static_cast<byte>(gen_byte(engine));
+    for (byte_& si : seed) {
+      si = static_cast<byte_>(gen_byte(engine));
     }
     cout << "seed: ";
     for (const auto& si : seed)

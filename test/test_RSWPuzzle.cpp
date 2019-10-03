@@ -17,8 +17,8 @@ int main(int argc, char* argv[]) {
   cout << "OpenSSL Version: " << OPENSSL_VERSION_TEXT << endl;
 
   bytevec x(7);
-  for (byte& xi : x) {
-    xi = static_cast<byte>(gen_byte(engine));
+  for (byte_& xi : x) {
+    xi = static_cast<byte_>(gen_byte(engine));
   }
   cout << "x: ";
   for (const auto& i : x)
@@ -26,8 +26,8 @@ int main(int argc, char* argv[]) {
   cout << endl;
 
   bytevec N(70);
-  for (byte& Ni : N) {
-    Ni = static_cast<byte>(gen_byte(engine));
+  for (byte_& Ni : N) {
+    Ni = static_cast<byte_>(gen_byte(engine));
   }
   cout << "N: ";
   for (const auto& i : N)

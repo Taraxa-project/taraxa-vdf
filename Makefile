@@ -35,8 +35,7 @@ timingbin = $(timingsrc:.cpp=.out)
 timingdep = $(timingsrc:.cpp=.d)
 
 .PHONY: all
-main: $(TARGET)
-all: main timing
+all: $(TARGET) test timing
 
 $(TARGET): $(obj)
 	mkdir -p lib

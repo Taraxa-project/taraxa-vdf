@@ -7,6 +7,7 @@
 #include "zallocator.hpp"
 
 using byte = unsigned char;
+using byte_ = byte;
 using byte_ptr = std::unique_ptr<byte>;
 using bytevec = std::vector<byte>;
 using SecureString = std::basic_string<byte, std::char_traits<byte>, zallocator<byte> >;

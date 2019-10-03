@@ -1,7 +1,7 @@
 PKG_FOLDER = $(shell pwd -P)
 LOCAL_FOLDER = ${HOME}/.local
-CC = ccache gcc-8 
-CXX = ccache g++-8 
+CC = gcc 
+CXX = g++ 
 CPPFLAGS = -I$(LOCAL_FOLDER)/include -std=c++17 # -D_DEBUG 
 CFLAGS = 
 CXXFLAGS = -g -O0 -fPIC -fexceptions 

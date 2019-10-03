@@ -5,11 +5,11 @@ I employ OpenSSL for its cryptographic features and GNU MP for its more user-fri
 The random oracle that hashes into a large set of prime numbers -- needed in the Wesolowski protocol -- is implemented using acceptance-rejection sampling.
 
 ## References
-[1] Wesolowski, Benjamin. "Efficient verifiable delay functions." IACR Cryptology ePrint Archive 2018 (2018): 623.
+[1] Benjamin Wesolowski. "Efficient verifiable delay functions." IACR Cryptology ePrint Archive 2018 (2018): 623.
 
-[2] Pietrzak, Krzysztof. "Simple verifiable delay functions." 10th Innovations in Theoretical Computer Science Conference (ITCS 2019). Schloss Dagstuhl-Leibniz-Zentrum fuer Informatik, 2018.
+[2] Krzysztof Pietrzak. "Simple verifiable delay functions." 10th Innovations in Theoretical Computer Science Conference (ITCS 2019). Schloss Dagstuhl-Leibniz-Zentrum fuer Informatik, 2018.
 
-[3] Boneh, Dan. "A Survey of Two Verifiable Delay Functions." 2018. https://crypto.stanford.edu/~dabo/pubs/papers/VDFsurvey.pdf
+[3] Dan Boneh, Benedikt Bünz, Ben Fisch. "A Survey of Two Verifiable Delay Functions." Cryptology ePrint Archive, 2018. https://crypto.stanford.edu/~dabo/pubs/papers/VDFsurvey.pdf
 
 
 ```

@@ -1,18 +1,15 @@
-PKG_FOLDER = $(shell pwd -P)
-LOCAL_FOLDER = ${HOME}/.local
 OPENSSL_HOME = "/usr/local/Cellar/openssl@1.1/1.1.1/"
 CC = gcc
 CXX = g++ 
-CPPFLAGS = -I$(LOCAL_FOLDER)/include -I$(OPENSSL_HOME)/include -std=c++17 # -D_DEBUG
+CPPFLAGS = -I./include -I$(OPENSSL_HOME)/include -std=c++17 # -D_DEBUG
 CFLAGS = 
-CXXFLAGS = -g -O0 -fPIC -fexceptions 
-TARGET = lib/libvdf.so
+CXXFLAGS = -O0 -fexceptions 
 STATIC = lib/libvdf.a
 
-OPENSSL_LDFLAGS = -L$(OPENSSL_HOME)/lib -lssl -lcrypto -Wl,-rpath=$(LOCAL_FOLDER)/lib
-PKG_LDFLAGS = -Llib -lvdf -Wl,-rpath=$(PKG_FOLDER)/lib 
-GMP_LDFLAGS = -L$(LOCAL_FOLDER)/lib -lgmpxx -lgmp -Wl,-rpath=$(LOCAL_FOLDER)/lib 
-MPFR_LDFLAGS = -L$(LOCAL_FOLDER)/lib -lmpfr -Wl,-rpath=$(LOCAL_FOLDER)/lib
+OPENSSL_LDFLAGS = -L$(OPENSSL_HOME)/lib -lssl -lcrypto 
+PKG_LDFLAGS = -Llib -lvdf  
+GMP_LDFLAGS = -lgmpxx -lgmp 
+MPFR_LDFLAGS = -lmpfr 
 
 ifeq ($(shell uname), Darwin)
 	CPPFLAGS = -I$(OPENSSL_HOME)/include -std=c++17
@@ -36,11 +33,7 @@ timingbin = $(timingsrc:.cpp=.out)
 timingdep = $(timingsrc:.cpp=.d)
 
 .PHONY: all
-all: $(TARGET) $(STATIC) test timing
-
-$(TARGET): $(obj)
-	mkdir -p lib
-#	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -shared -o $@ $^ $(LDFLAGS) 
+all: $(STATIC) test timing 
 
 $(STATIC): $(obj)
 	mkdir -p lib

@@ -1,4 +1,5 @@
-extern "C" {
+extern "C"
+{
 #include <stdio.h>
 #include <stdarg.h>
 }
@@ -6,17 +7,19 @@ extern "C" {
 #include "../include/util.h"
 #include <algorithm>
 
-
+namespace vdf
+{
 using namespace std;
 
-Hash2Prime::Hash2Prime(const int& lambda) :
-    primeGen(gmp_randinit_mt) {
+Hash2Prime::Hash2Prime(const int &lambda) : primeGen(gmp_randinit_mt)
+{
   expmLambertWm1(lambda);
   // divide max_int by 6 to take only values 6k+-1 as candidates
   mpz_cdiv_q(max_int.get_mpz_t(), max_int.get_mpz_t(), (6_mpz).get_mpz_t());
 }
 
-void Hash2Prime::operator()(const BIGNUM* in, BIGNUM* out) {
+void Hash2Prime::operator()(const BIGNUM *in, BIGNUM *out)
+{
   const int max_iter = 10000;
   const int max_miller_rabin = 30;
 
@@ -26,11 +29,12 @@ void Hash2Prime::operator()(const BIGNUM* in, BIGNUM* out) {
 
   int isprime = 0;
   int count = 0;
-  while (isprime <= 0 && count < max_iter) {
+  while (isprime <= 0 && count < max_iter)
+  {
     candidate = primeGen.get_z_range(max_int);
     sign = primeGen.get_z_bits(1);
-    sign = 2*sign-1;
-    candidate = 6*candidate+sign;
+    sign = 2 * sign - 1;
+    candidate = 6 * candidate + sign;
     isprime = mpz_probab_prime_p(candidate.get_mpz_t(), max_miller_rabin);
     count++;
   }
@@ -38,7 +42,7 @@ void Hash2Prime::operator()(const BIGNUM* in, BIGNUM* out) {
   if (count == max_iter)
     throw runtime_error("Prime not found!");
 
-  cache.resize(2+mpz_sizeinbase(candidate.get_mpz_t(), 2)/CHAR_BIT);
+  cache.resize(2 + mpz_sizeinbase(candidate.get_mpz_t(), 2) / CHAR_BIT);
   size_t countp = 0;
   mpz_export(&cache[0], &countp, 1, sizeof(cache[0]), 1, 0, candidate.get_mpz_t());
   cache.resize(countp);
@@ -49,7 +53,8 @@ void Hash2Prime::operator()(const BIGNUM* in, BIGNUM* out) {
 // ideas taken from https://github.com/BrianGladman/gsl/blob/9caa2b8fff209fde55f28d1cbe0bab7f94044559/specfunc/lambert.c#L207
 // calculates ceil(exp(-W_{-1}(-2^{-\lambda}))), where
 //   -W_{-1} is Lambert's W function at branch -1
-void Hash2Prime::expmLambertWm1(const int& lambda) {
+void Hash2Prime::expmLambertWm1(const int &lambda)
+{
   // init variables
   const unsigned int precision = 4096u;
   const mpfr_rnd_t rounding = MPFR_RNDN;
@@ -65,24 +70,28 @@ void Hash2Prime::expmLambertWm1(const int& lambda) {
   mpfr_neg(tmp, L1, rounding);
   mpfr_log(L2, tmp, rounding);
 
-  mpfr_div(tmp, L2, L1, rounding);  // w = L1-L2+L2/L1;
+  mpfr_div(tmp, L2, L1, rounding); // w = L1-L2+L2/L1;
   mpfr_sub(tmp, tmp, L2, rounding);
   mpfr_add(w, tmp, L1, rounding);
-  mpfr_set_si_2exp(eps, 1, -std::min(200l, precision/3l), rounding);
+  mpfr_set_si_2exp(eps, 1, -std::min(200l, precision / 3l), rounding);
 
   bool found = false;
-  for (int i = 0; i < maxiter && !found; i++) {
+  for (int i = 0; i < maxiter && !found; i++)
+  {
     // t = exp(w)*w-x
     mpfr_exp(e, w, rounding);
     mpfr_mul(tmp, w, e, rounding);
     mpfr_sub(t, tmp, x, rounding);
 
     mpfr_add_si(p, w, 1, rounding);
-    if (mpfr_sgn(w) > 0) {  // Newton iteration
+    if (mpfr_sgn(w) > 0)
+    { // Newton iteration
       // t = (t/p)/e
       mpfr_div(tmp, t, p, rounding);
       mpfr_div(t, tmp, e, rounding);
-    } else {  // Halley iteration
+    }
+    else
+    { // Halley iteration
       // t /= e*p - 0.5*(p + 1.0)*t/p
       mpfr_mul(tmp2, e, p, rounding);
       mpfr_add_si(tmp, p, 1, rounding);
@@ -94,7 +103,7 @@ void Hash2Prime::expmLambertWm1(const int& lambda) {
     }
     // w -= t
     mpfr_sub(w, w, t, rounding);
-    
+
     // calculate tolerance
     // 10*eps*max(|w|, 1/(|p|*e))
     mpfr_abs(tmp, p, rounding);
@@ -104,10 +113,11 @@ void Hash2Prime::expmLambertWm1(const int& lambda) {
     mpfr_max(tmp, tmp, tmp2, rounding);
     mpfr_mul_si(tmp, tmp, 10, rounding);
     mpfr_mul(tol, eps, tmp, rounding);
-    
+
     // if the change is smaller than the tolerance we've found the solution
     mpfr_abs(tmp, t, rounding);
-    if (mpfr_cmp(tol, tmp) > 0) {
+    if (mpfr_cmp(tol, tmp) > 0)
+    {
       found = true;
     }
   }
@@ -121,7 +131,7 @@ void Hash2Prime::expmLambertWm1(const int& lambda) {
   // free up space
   mpfr_free_cache();
   mpfr_clears(L1, L2, w, x, eps, tol, e, p, t, tmp, tmp2, NULL);
-  
+
   return;
 }
-
+} // namespace vdf

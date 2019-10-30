@@ -6,15 +6,17 @@
 #include <chrono>
 #include <vector>
 
-ProverPietrzak::ProverPietrzak() :
-    durations(4),
-    ctx_ptr(BN_CTX_free_ptr(BN_CTX_secure_new(), ::BN_CTX_free)) { }
+namespace vdf
+{
+ProverPietrzak::ProverPietrzak() : durations(4),
+                                   ctx_ptr(BN_CTX_free_ptr(BN_CTX_secure_new(), ::BN_CTX_free)) {}
 
 typename ProverPietrzak::solution
-ProverPietrzak::operator()(const VerifierPietrzak& verifier, long _d_max) const {
+ProverPietrzak::operator()(const VerifierPietrzak &verifier, long _d_max) const
+{
   durations.assign(durations.size(), decltype(durations)::value_type::zero());
 
-  BN_CTX* ctx = ctx_ptr.get();
+  BN_CTX *ctx = ctx_ptr.get();
   BN_CTX_start(ctx);
 
   // constants
@@ -26,39 +28,43 @@ ProverPietrzak::operator()(const VerifierPietrzak& verifier, long _d_max) const 
   const bytevec _x = puzzle.get_x();
 
   // helper variables
-  const unsigned long d_max = (_d_max >= 0) ? (unsigned long)_d_max : t/2;
-  if (d_max > t) {
+  const unsigned long d_max = (_d_max >= 0) ? (unsigned long)_d_max : t / 2;
+  if (d_max > t)
+  {
     throw std::runtime_error("d_max is too large");
   }
   const auto start_allocation = std::chrono::high_resolution_clock::now();
-  BIGNUM* mu = BN_CTX_get(ctx);
-  BIGNUM* N = BN_CTX_get(ctx);
-  BIGNUM* T = BN_CTX_get(ctx);
-  BIGNUM* Tip1 = BN_CTX_get(ctx);  // denotes T_{i+1} from the paper
-  BIGNUM* x = BN_CTX_get(ctx);
-  BIGNUM* r = BN_CTX_get(ctx);
-  BIGNUM* y = BN_CTX_get(ctx);
-  BIGNUM* tt = BN_CTX_get(ctx);
-  BIGNUM* xy_help = BN_CTX_get(ctx);
-  BIGNUM* xymu = BN_CTX_get(ctx);
-  BIGNUM* prod_help = BN_CTX_get(ctx);
-  BIGNUM* prod_help2 = BN_CTX_get(ctx);
-  BIGNUM* two_to_d = BN_CTX_get(ctx);
-  BIGNUM* q = BN_CTX_get(ctx);
-  BIGNUM* rem = BN_CTX_get(ctx);
-  std::vector<std::vector<BIGNUM*> > cache(d_max);
-  std::vector<BIGNUM*> r_cache(d_max);
-  for (int i = 1; i <= d_max; i++) {
-    r_cache[i-1] = BN_CTX_get(ctx);
-    cache[i-1].resize(exp2(i-1));
-    for (int k = 0; k < cache[i-1].size(); k++) {
-      cache[i-1][k] = BN_CTX_get(ctx);
+  BIGNUM *mu = BN_CTX_get(ctx);
+  BIGNUM *N = BN_CTX_get(ctx);
+  BIGNUM *T = BN_CTX_get(ctx);
+  BIGNUM *Tip1 = BN_CTX_get(ctx); // denotes T_{i+1} from the paper
+  BIGNUM *x = BN_CTX_get(ctx);
+  BIGNUM *r = BN_CTX_get(ctx);
+  BIGNUM *y = BN_CTX_get(ctx);
+  BIGNUM *tt = BN_CTX_get(ctx);
+  BIGNUM *xy_help = BN_CTX_get(ctx);
+  BIGNUM *xymu = BN_CTX_get(ctx);
+  BIGNUM *prod_help = BN_CTX_get(ctx);
+  BIGNUM *prod_help2 = BN_CTX_get(ctx);
+  BIGNUM *two_to_d = BN_CTX_get(ctx);
+  BIGNUM *q = BN_CTX_get(ctx);
+  BIGNUM *rem = BN_CTX_get(ctx);
+  std::vector<std::vector<BIGNUM *>> cache(d_max);
+  std::vector<BIGNUM *> r_cache(d_max);
+  for (int i = 1; i <= d_max; i++)
+  {
+    r_cache[i - 1] = BN_CTX_get(ctx);
+    cache[i - 1].resize(exp2(i - 1));
+    for (int k = 0; k < cache[i - 1].size(); k++)
+    {
+      cache[i - 1][k] = BN_CTX_get(ctx);
     }
   }
   durations[0] = std::chrono::high_resolution_clock::now() - start_allocation;
   const unsigned long err = ERR_get_error();
-  if (err != 0) {
-    char* err_char = new char[300];
+  if (err != 0)
+  {
+    char *err_char = new char[300];
     ERR_error_string_n(err, err_char, 300);
     std::string err_string(err_char);
     delete[] err_char;
@@ -78,16 +84,19 @@ ProverPietrzak::operator()(const VerifierPietrzak& verifier, long _d_max) const 
   // calculate _y and save partial results
   BN_copy(y, x);
   const auto start_y = std::chrono::high_resolution_clock::now();
-  for (BN_one(tt); BN_cmp(tt, T) <= 0;  BN_add(tt, tt, BN_value_one())) {
+  for (BN_one(tt); BN_cmp(tt, T) <= 0; BN_add(tt, tt, BN_value_one()))
+  {
     BN_mod_sqr(y, y, N, ctx);
     bool saved = false;
-    for (unsigned long d_ind = 0; d_ind < d_max && !saved; d_ind++) {
+    for (unsigned long d_ind = 0; d_ind < d_max && !saved; d_ind++)
+    {
       BN_one(two_to_d);
-      BN_lshift(two_to_d, two_to_d, t-d_ind-1);
+      BN_lshift(two_to_d, two_to_d, t - d_ind - 1);
       BN_div(q, rem, tt, two_to_d, ctx);
-      if (BN_is_zero(rem) && BN_cmp(tt, T) < 0) {
+      if (BN_is_zero(rem) && BN_cmp(tt, T) < 0)
+      {
         const auto q_word = BN_get_word(q);
-        BN_copy(cache[d_ind][(q_word-1)/2], y);
+        BN_copy(cache[d_ind][(q_word - 1) / 2], y);
         saved = true;
       }
     }
@@ -102,43 +111,51 @@ ProverPietrzak::operator()(const VerifierPietrzak& verifier, long _d_max) const 
   BN_add(xy_help, xy_help, y);
   BN_lshift(xy_help, xy_help, BN_num_bits(N));
   durations[2] = std::chrono::high_resolution_clock::now() - start_mu_minus_hash;
-  
+
   // calculate _mu
   decltype(std::chrono::high_resolution_clock::now()) start_hash;
-  for (unsigned long i = 1; i <= t; i++) {
+  for (unsigned long i = 1; i <= t; i++)
+  {
     start_mu_minus_hash = std::chrono::high_resolution_clock::now();
     BN_rshift1(Tip1, Tip1);
-    if (i > d_max) {  // we have to do sequential squarings
+    if (i > d_max)
+    { // we have to do sequential squarings
       BN_copy(mu, x);
-      for (BN_one(tt); BN_cmp(tt, Tip1) <= 0; BN_add(tt, tt, BN_value_one())) {
+      for (BN_one(tt); BN_cmp(tt, Tip1) <= 0; BN_add(tt, tt, BN_value_one()))
+      {
         BN_mod_sqr(mu, mu, N, ctx);
       }
-    } else {  // we use the cache
+    }
+    else
+    { // we use the cache
       BN_one(prod_help2);
       unsigned long k;
-      const int bits_size = CHAR_BIT*sizeof(decltype(k));
+      const int bits_size = CHAR_BIT * sizeof(decltype(k));
       std::bitset<bits_size> k_bits;
-      for (k = 0; k < cache[i-1].size(); k++) {
-        k_bits = cache[i-1].size()-1-k;
+      for (k = 0; k < cache[i - 1].size(); k++)
+      {
+        k_bits = cache[i - 1].size() - 1 - k;
         BN_one(prod_help);
-        for (unsigned long b = 0; b < i-1; b++) {
-          if (k_bits.test(i-2-b)) {
+        for (unsigned long b = 0; b < i - 1; b++)
+        {
+          if (k_bits.test(i - 2 - b))
+          {
             BN_mul(prod_help, prod_help, r_cache[b], ctx);
           }
         }
-        BN_mod_exp(prod_help, cache[i-1][k], prod_help, N, ctx);
+        BN_mod_exp(prod_help, cache[i - 1][k], prod_help, N, ctx);
         BN_mod_mul(prod_help2, prod_help2, prod_help, N, ctx);
       }
       BN_copy(mu, prod_help2);
     }
-    bn2bytevec(mu, _mu[i-1]);
+    bn2bytevec(mu, _mu[i - 1]);
 #ifdef _DEBUG
-      std::cout << "mu:\t" << print_bn_hex(mu) << std::endl;
+    std::cout << "mu:\t" << print_bn_hex(mu) << std::endl;
 #endif
     BN_copy(xymu, xy_help);
     BN_add(xymu, xymu, mu);
 #ifdef _DEBUG
-      std::cout << "xymu:\t" << print_bn_hex(xymu) << std::endl;
+    std::cout << "xymu:\t" << print_bn_hex(xymu) << std::endl;
 #endif
     durations[2] += std::chrono::high_resolution_clock::now() - start_mu_minus_hash;
     start_hash = std::chrono::high_resolution_clock::now();
@@ -146,31 +163,36 @@ ProverPietrzak::operator()(const VerifierPietrzak& verifier, long _d_max) const 
     durations[3] += std::chrono::high_resolution_clock::now() - start_hash;
     start_mu_minus_hash = std::chrono::high_resolution_clock::now();
 #ifdef _DEBUG
-      std::cout << "r:\t" << print_bn(r) << std::endl;
+    std::cout << "r:\t" << print_bn(r) << std::endl;
 #endif
-    if (i <= d_max) {
-      BN_copy(r_cache[i-1], r);
+    if (i <= d_max)
+    {
+      BN_copy(r_cache[i - 1], r);
     }
     // get the new x
     BN_mod_exp(prod_help, x, r, N, ctx);
     BN_mod_mul(x, prod_help, mu, N, ctx);
 #ifdef _DEBUG
-      std::cout << "x:\t" << print_bn(x) << std::endl;
+    std::cout << "x:\t" << print_bn(x) << std::endl;
 #endif
     // get the new y
     BN_mod_exp(prod_help, mu, r, N, ctx);
     BN_mod_mul(y, prod_help, y, N, ctx);
     durations[2] += std::chrono::high_resolution_clock::now() - start_mu_minus_hash;
 #ifdef _DEBUG
-      std::cout << "y:\t" << print_bn(y) << std::endl;
-      std::cout << "----------------" << std::endl << std::endl;
+    std::cout << "y:\t" << print_bn(y) << std::endl;
+    std::cout << "----------------" << std::endl
+              << std::endl;
 #endif
   }
-  
+
 #ifdef _DEBUG
-  std::cout << std::endl << "-----------------------------------------------------------" << std::endl << std::endl;
+  std::cout << std::endl
+            << "-----------------------------------------------------------" << std::endl
+            << std::endl;
 #endif
 
   BN_CTX_end(ctx);
   return std::make_pair(_mu, _y);
 }
+} // namespace vdf

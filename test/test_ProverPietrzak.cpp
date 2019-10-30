@@ -6,6 +6,7 @@
 #include <iostream>
 #include <sstream>
 #include "../include/util.h"
+using namespace vdf;
 
 int main(int argc, char* argv[]) {
   BIGNUM* N_bn = BN_secure_new();

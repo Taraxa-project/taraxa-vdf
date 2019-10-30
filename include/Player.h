@@ -3,17 +3,20 @@
 #include "types.h"
 #include "Lottery.hpp"
 
-class Player {
+namespace vdf
+{
+class Player
+{
 public:
   Player(const int m);
   ~Player() = default;
 
   void add_money(const int m);
 
-  template<VDF_version w>
-  void play(Lottery<w>& l, const int m);
-  
+  template <VDF_version w>
+  void play(Lottery<w> &l, const int m);
+
 private:
   int money;
 };
-
+} // namespace vdf

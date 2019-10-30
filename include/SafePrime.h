@@ -1,23 +1,27 @@
 #pragma once
 
-extern "C" {
+extern "C"
+{
 #include <openssl/bn.h>
 }
 
 #include <string>
 
-class SafePrime {
+namespace vdf
+{
+class SafePrime
+{
 public:
   SafePrime();
   ~SafePrime();
 
-  void generate (const int size = 32);
-  const std::string print () const;
+  void generate(const int size = 32);
+  const std::string print() const;
 
-  static void seed (const std::string buffer);
+  static void seed(const std::string buffer);
 
 private:
-  BIGNUM* value;
+  BIGNUM *value;
   std::string str;
 };
-
+} // namespace vdf

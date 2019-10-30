@@ -1,6 +1,6 @@
 PKG_FOLDER = $(shell pwd -P)
 LOCAL_FOLDER = ${HOME}/.local
-OPENSSL_HOME = $(LOCAL_FOLDER)
+OPENSSL_HOME = "/usr/local/Cellar/openssl@1.1/1.1.1/"
 CC = gcc
 CXX = g++ 
 CPPFLAGS = -I$(LOCAL_FOLDER)/include -I$(OPENSSL_HOME)/include -std=c++17 # -D_DEBUG
@@ -43,7 +43,7 @@ $(TARGET): $(obj)
 
 obj/%.o: src/%.cpp
 	mkdir -p obj
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ -c $<
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ -c $< 
 
 .PHONY: test
 test: $(testbin) $(testdep)

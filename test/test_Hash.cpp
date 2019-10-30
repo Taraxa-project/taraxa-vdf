@@ -9,141 +9,151 @@
 #include <iostream>
 #include <cstring>
 
-void gen_params(bytevec& key, bytevec& iv);
-void aes_encrypt(const bytevec& key, const bytevec& iv, const BIGNUM* pnum, BIGNUM* cnum);
-void aes_decrypt(const bytevec& key, const bytevec& iv, const BIGNUM* cnum, BIGNUM* rnum);
+using namespace vdf;
 
-int main(int argc, char* argv[]) {
-    const unsigned int key_size = 256/(CHAR_BIT*sizeof(byte));  // because we're using AES-256
-    const unsigned int block_size = 128/(CHAR_BIT*sizeof(byte));
+void gen_params(bytevec &key, bytevec &iv);
+void aes_encrypt(const bytevec &key, const bytevec &iv, const BIGNUM *pnum, BIGNUM *cnum);
+void aes_decrypt(const bytevec &key, const bytevec &iv, const BIGNUM *cnum, BIGNUM *rnum);
 
-    BN_CTX* ctx = BN_CTX_new();
-    BN_CTX_start(ctx);
+int main(int argc, char *argv[])
+{
+  const unsigned int key_size = 256 / (CHAR_BIT * sizeof(byte)); // because we're using AES-256
+  const unsigned int block_size = 128 / (CHAR_BIT * sizeof(byte));
 
-    // Load the necessary cipher
-    EVP_add_cipher(EVP_aes_256_ctr());
+  BN_CTX *ctx = BN_CTX_new();
+  BN_CTX_start(ctx);
 
-    // plaintext, ciphertext, recovered text
-    BIGNUM* pnum = BN_CTX_get(ctx);
-    BIGNUM* cnum = BN_CTX_get(ctx);
-    BIGNUM* rnum = BN_CTX_get(ctx);
+  // Load the necessary cipher
+  EVP_add_cipher(EVP_aes_256_ctr());
 
-    BN_dec2bn(&pnum, "1110111011101110111011101110111011101110111011101110111011101110111011101110111011101110111011101110111011101110");
+  // plaintext, ciphertext, recovered text
+  BIGNUM *pnum = BN_CTX_get(ctx);
+  BIGNUM *cnum = BN_CTX_get(ctx);
+  BIGNUM *rnum = BN_CTX_get(ctx);
 
-    bytevec key(key_size);
-    bytevec iv(block_size);
-    gen_params(key, iv);
+  BN_dec2bn(&pnum, "1110111011101110111011101110111011101110111011101110111011101110111011101110111011101110111011101110111011101110");
 
-    // does Hash encrypt correctly?
-    Hash hash20(20, key, iv);
-    BIGNUM* hash20_num = BN_CTX_get(ctx);
-    hash20(pnum, hash20_num);
-  
-    // does encryption/decryption work?
-    aes_encrypt(key, iv, pnum, cnum);
-    aes_decrypt(key, iv, cnum, rnum);
+  bytevec key(key_size);
+  bytevec iv(block_size);
+  gen_params(key, iv);
 
-    std::cout << "Original message:\n" << print_bn_hex(pnum) << std::endl;
-    std::cout << "Recovered message:\n" << print_bn_hex(rnum) << std::endl;
-    std::cout << "Full hash message:\n" << print_bn_hex(cnum) << std::endl;
-    std::cout << "Hash20 message:\n" << print_bn_hex(hash20_num) << std::endl;
+  // does Hash encrypt correctly?
+  Hash hash20(20, key, iv);
+  BIGNUM *hash20_num = BN_CTX_get(ctx);
+  hash20(pnum, hash20_num);
 
-    hash20(pnum, hash20_num);
-    std::cout << "Hash20 message again:\n" << print_bn_hex(hash20_num) << std::endl;
+  // does encryption/decryption work?
+  aes_encrypt(key, iv, pnum, cnum);
+  aes_decrypt(key, iv, cnum, rnum);
 
-    BN_CTX_end(ctx);
-    BN_CTX_free(ctx);
+  std::cout << "Original message:\n"
+            << print_bn_hex(pnum) << std::endl;
+  std::cout << "Recovered message:\n"
+            << print_bn_hex(rnum) << std::endl;
+  std::cout << "Full hash message:\n"
+            << print_bn_hex(cnum) << std::endl;
+  std::cout << "Hash20 message:\n"
+            << print_bn_hex(hash20_num) << std::endl;
 
-    return 0;
+  hash20(pnum, hash20_num);
+  std::cout << "Hash20 message again:\n"
+            << print_bn_hex(hash20_num) << std::endl;
+
+  BN_CTX_end(ctx);
+  BN_CTX_free(ctx);
+
+  return 0;
 }
 
 void gen_params(
-    bytevec& key,
-    bytevec& iv) {
+    bytevec &key,
+    bytevec &iv)
+{
 
-    const unsigned int key_size = key.size();
-    int rc = RAND_bytes(key.data(), key_size);
-    if (rc != 1)
-      throw std::runtime_error("RAND_bytes key failed");
+  const unsigned int key_size = key.size();
+  int rc = RAND_bytes(key.data(), key_size);
+  if (rc != 1)
+    throw std::runtime_error("RAND_bytes key failed");
 
-    const unsigned int block_size = iv.size();
-    rc = RAND_bytes(iv.data(), block_size);
-    if (rc != 1)
-      throw std::runtime_error("RAND_bytes for iv failed");
+  const unsigned int block_size = iv.size();
+  rc = RAND_bytes(iv.data(), block_size);
+  if (rc != 1)
+    throw std::runtime_error("RAND_bytes for iv failed");
 }
 
 void aes_encrypt(
-    const bytevec& key,
-    const bytevec& iv,
-    const BIGNUM* pnum,
-    BIGNUM* cnum) {
+    const bytevec &key,
+    const bytevec &iv,
+    const BIGNUM *pnum,
+    BIGNUM *cnum)
+{
 
-    SecureString ptext, ctext;
-    ptext.resize(BN_num_bytes(pnum));
-    BN_bn2bin(pnum, &ptext[0]);
+  SecureString ptext, ctext;
+  ptext.resize(BN_num_bytes(pnum));
+  BN_bn2bin(pnum, &ptext[0]);
 
-    EVP_CIPHER_CTX_free_ptr ctx(EVP_CIPHER_CTX_new(), ::EVP_CIPHER_CTX_free);
-    int rc = EVP_EncryptInit_ex(ctx.get(), EVP_aes_256_ctr(), NULL, key.data(), iv.data());
-    if (rc != 1)
-      throw std::runtime_error("EVP_EncryptInit_ex failed");
+  EVP_CIPHER_CTX_free_ptr ctx(EVP_CIPHER_CTX_new(), ::EVP_CIPHER_CTX_free);
+  int rc = EVP_EncryptInit_ex(ctx.get(), EVP_aes_256_ctr(), NULL, key.data(), iv.data());
+  if (rc != 1)
+    throw std::runtime_error("EVP_EncryptInit_ex failed");
 
-    const unsigned int block_size = iv.size();
-    // Recovered text expands upto BLOCK_SIZE
-    ctext.resize(ptext.size()+block_size);
-    std::cout << ctext.size() << std::endl;
-    int out_len1 = (int)ctext.size();
-    std::cout << out_len1 << std::endl;
+  const unsigned int block_size = iv.size();
+  // Recovered text expands upto BLOCK_SIZE
+  ctext.resize(ptext.size() + block_size);
+  std::cout << ctext.size() << std::endl;
+  int out_len1 = (int)ctext.size();
+  std::cout << out_len1 << std::endl;
 
-    rc = EVP_EncryptUpdate(ctx.get(), &ctext[0], &out_len1, (const byte*)&ptext[0], (int)ptext.size());
-    std::cout << out_len1 << std::endl;
-    if (rc != 1)
-      throw std::runtime_error("EVP_EncryptUpdate failed");
-  
-    int out_len2 = (int)ctext.size() - out_len1;
-    std::cout << out_len2 << std::endl;
-    rc = EVP_EncryptFinal_ex(ctx.get(), &ctext[0]+out_len1, &out_len2);
-    std::cout << out_len2 << std::endl;
-    if (rc != 1)
-      throw std::runtime_error("EVP_EncryptFinal_ex failed");
+  rc = EVP_EncryptUpdate(ctx.get(), &ctext[0], &out_len1, (const byte *)&ptext[0], (int)ptext.size());
+  std::cout << out_len1 << std::endl;
+  if (rc != 1)
+    throw std::runtime_error("EVP_EncryptUpdate failed");
 
-    // Set cipher text size now that we know it
-    ctext.resize(out_len1 + out_len2);
-    std::cout << ctext.size() << std::endl;
+  int out_len2 = (int)ctext.size() - out_len1;
+  std::cout << out_len2 << std::endl;
+  rc = EVP_EncryptFinal_ex(ctx.get(), &ctext[0] + out_len1, &out_len2);
+  std::cout << out_len2 << std::endl;
+  if (rc != 1)
+    throw std::runtime_error("EVP_EncryptFinal_ex failed");
 
-    BN_bin2bn((const byte*)&ctext[0], (int)ctext.size(), cnum);
+  // Set cipher text size now that we know it
+  ctext.resize(out_len1 + out_len2);
+  std::cout << ctext.size() << std::endl;
+
+  BN_bin2bn((const byte *)&ctext[0], (int)ctext.size(), cnum);
 }
 
-void aes_decrypt (
-    const bytevec& key,
-    const bytevec& iv,
-    const BIGNUM* cnum,
-    BIGNUM* rnum) {
+void aes_decrypt(
+    const bytevec &key,
+    const bytevec &iv,
+    const BIGNUM *cnum,
+    BIGNUM *rnum)
+{
 
-    SecureString ctext, rtext;
-    ctext.resize(BN_num_bytes(cnum));
-    BN_bn2bin(cnum, &ctext[0]);
+  SecureString ctext, rtext;
+  ctext.resize(BN_num_bytes(cnum));
+  BN_bn2bin(cnum, &ctext[0]);
 
-    EVP_CIPHER_CTX_free_ptr ctx(EVP_CIPHER_CTX_new(), ::EVP_CIPHER_CTX_free);
-    int rc = EVP_DecryptInit_ex(ctx.get(), EVP_aes_256_ctr(), NULL, key.data(), iv.data());
-    if (rc != 1)
-      throw std::runtime_error("EVP_DecryptInit_ex failed");
+  EVP_CIPHER_CTX_free_ptr ctx(EVP_CIPHER_CTX_new(), ::EVP_CIPHER_CTX_free);
+  int rc = EVP_DecryptInit_ex(ctx.get(), EVP_aes_256_ctr(), NULL, key.data(), iv.data());
+  if (rc != 1)
+    throw std::runtime_error("EVP_DecryptInit_ex failed");
 
-    // Recovered text contracts upto BLOCK_SIZE
-    rtext.resize(ctext.size());
-    int out_len1 = (int)rtext.size();
+  // Recovered text contracts upto BLOCK_SIZE
+  rtext.resize(ctext.size());
+  int out_len1 = (int)rtext.size();
 
-    rc = EVP_DecryptUpdate(ctx.get(), (byte*)&rtext[0], &out_len1, (const byte*)&ctext[0], (int)ctext.size());
-    if (rc != 1)
-      throw std::runtime_error("EVP_DecryptUpdate failed");
-  
-    int out_len2 = (int)rtext.size() - out_len1;
-    rc = EVP_DecryptFinal_ex(ctx.get(), (byte*)&rtext[0]+out_len1, &out_len2);
-    if (rc != 1)
-      throw std::runtime_error("EVP_DecryptFinal_ex failed");
+  rc = EVP_DecryptUpdate(ctx.get(), (byte *)&rtext[0], &out_len1, (const byte *)&ctext[0], (int)ctext.size());
+  if (rc != 1)
+    throw std::runtime_error("EVP_DecryptUpdate failed");
 
-    // Set recovered text size now that we know it
-    rtext.resize(out_len1 + out_len2);
+  int out_len2 = (int)rtext.size() - out_len1;
+  rc = EVP_DecryptFinal_ex(ctx.get(), (byte *)&rtext[0] + out_len1, &out_len2);
+  if (rc != 1)
+    throw std::runtime_error("EVP_DecryptFinal_ex failed");
 
-    BN_bin2bn((const byte*)&rtext[0], (int)rtext.size(), rnum);
+  // Set recovered text size now that we know it
+  rtext.resize(out_len1 + out_len2);
+
+  BN_bin2bn((const byte *)&rtext[0], (int)rtext.size(), rnum);
 }
-

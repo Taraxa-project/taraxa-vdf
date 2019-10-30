@@ -9,28 +9,32 @@
 #include <openssl/bn.h>
 
 using namespace std;
+using namespace vdf;
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[])
+{
   mt19937 engine(42);
   uniform_int_distribution<unsigned short> gen_byte(0, 255);
 
   cout << "OpenSSL Version: " << OPENSSL_VERSION_TEXT << endl;
 
   bytevec x(7);
-  for (byte_& xi : x) {
+  for (byte_ &xi : x)
+  {
     xi = static_cast<byte_>(gen_byte(engine));
   }
   cout << "x: ";
-  for (const auto& i : x)
+  for (const auto &i : x)
     cout << (int)i << ' ';
   cout << endl;
 
   bytevec N(70);
-  for (byte_& Ni : N) {
+  for (byte_ &Ni : N)
+  {
     Ni = static_cast<byte_>(gen_byte(engine));
   }
   cout << "N: ";
-  for (const auto& i : N)
+  for (const auto &i : N)
     cout << (int)i << ' ';
   cout << endl;
 
@@ -41,7 +45,7 @@ int main(int argc, char* argv[]) {
   RSWPuzzle rsw1(lambda, t, x, N);
   RSWPuzzle rsw2(lambda, t, x, lambdaRSW);
   cout << "N2: ";
-  for (const auto& i : rsw2.get_N())
+  for (const auto &i : rsw2.get_N())
     cout << (int)i << ' ';
   cout << endl;
 
@@ -60,8 +64,7 @@ int main(int argc, char* argv[]) {
     throw runtime_error("T error");
   //if (rsw2.get_x() != x)
   //  throw runtime_error("x error");
-  if (rsw2.get_N().size()*CHAR_BIT < lambdaRSW)
+  if (rsw2.get_N().size() * CHAR_BIT < lambdaRSW)
     throw runtime_error("lambdaRSW error");
   return 0;
 }
-

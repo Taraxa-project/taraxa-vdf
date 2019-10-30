@@ -1,40 +1,41 @@
 #include "../include/VerifierWesolowski.h"
+namespace vdf
+{
+VerifierWesolowski::VerifierWesolowski(
+    const unsigned long _lambda,
+    const unsigned long _t,
+    const bytevec &_x,
+    const unsigned long _lambdaRSW) : hash(_lambda),
+                                      durations(4),
+                                      puzzle(_lambda, _t, _x, _lambdaRSW),
+                                      lambda(_lambda),
+                                      ctx_ptr(BN_CTX_free_ptr(BN_CTX_secure_new(), ::BN_CTX_free)) {}
 
 VerifierWesolowski::VerifierWesolowski(
     const unsigned long _lambda,
     const unsigned long _t,
-    const bytevec& _x,
-    const unsigned long _lambdaRSW) :
-      hash(_lambda),
-      durations(4),
-      puzzle(_lambda, _t, _x, _lambdaRSW),
-      lambda(_lambda),
-      ctx_ptr(BN_CTX_free_ptr(BN_CTX_secure_new(), ::BN_CTX_free)) { }
+    const bytevec &_x,
+    const bytevec &N) : hash(_lambda),
+                        durations(4),
+                        puzzle(_lambda, _t, _x, N),
+                        lambda(_lambda),
+                        ctx_ptr(BN_CTX_free_ptr(BN_CTX_secure_new(), ::BN_CTX_free)) {}
 
-VerifierWesolowski::VerifierWesolowski(
-    const unsigned long _lambda,
-    const unsigned long _t,
-    const bytevec& _x,
-    const bytevec& N) :
-      hash(_lambda),
-      durations(4),
-      puzzle(_lambda, _t, _x, N),
-      lambda(_lambda),
-      ctx_ptr(BN_CTX_free_ptr(BN_CTX_secure_new(), ::BN_CTX_free)) { }
-
-
-Hash2Prime VerifierWesolowski::get_Hash () const {
+Hash2Prime VerifierWesolowski::get_Hash() const
+{
   return Hash2Prime(lambda);
 }
 
-RSWPuzzle VerifierWesolowski::get_RSWPuzzle () const {
+RSWPuzzle VerifierWesolowski::get_RSWPuzzle() const
+{
   return puzzle;
 }
 
-bool VerifierWesolowski::operator()(const solution& sol) const {
+bool VerifierWesolowski::operator()(const solution &sol) const
+{
   durations.assign(durations.size(), decltype(durations)::value_type::zero());
 
-  BN_CTX* ctx = ctx_ptr.get();
+  BN_CTX *ctx = ctx_ptr.get();
   BN_CTX_start(ctx);
 
   // constants
@@ -47,16 +48,16 @@ bool VerifierWesolowski::operator()(const solution& sol) const {
 
   // helper variables
   const auto start_allocation = std::chrono::high_resolution_clock::now();
-  BIGNUM* pi = BN_CTX_get(ctx);
-  BIGNUM* N = BN_CTX_get(ctx);
-  BIGNUM* T = BN_CTX_get(ctx);
-  BIGNUM* h = BN_CTX_get(ctx);
-  BIGNUM* p = BN_CTX_get(ctx);
-  BIGNUM* r = BN_CTX_get(ctx);
-  BIGNUM* x = BN_CTX_get(ctx);
-  BIGNUM* y = BN_CTX_get(ctx);
-  BIGNUM* xy = BN_CTX_get(ctx);
-  BIGNUM* BN_value_two = BN_CTX_get(ctx);
+  BIGNUM *pi = BN_CTX_get(ctx);
+  BIGNUM *N = BN_CTX_get(ctx);
+  BIGNUM *T = BN_CTX_get(ctx);
+  BIGNUM *h = BN_CTX_get(ctx);
+  BIGNUM *p = BN_CTX_get(ctx);
+  BIGNUM *r = BN_CTX_get(ctx);
+  BIGNUM *x = BN_CTX_get(ctx);
+  BIGNUM *y = BN_CTX_get(ctx);
+  BIGNUM *xy = BN_CTX_get(ctx);
+  BIGNUM *BN_value_two = BN_CTX_get(ctx);
   durations[0] = std::chrono::high_resolution_clock::now() - start_allocation;
 
   // set initial values
@@ -67,9 +68,9 @@ bool VerifierWesolowski::operator()(const solution& sol) const {
   BN_bin2bn(_pi.data(), (int)_pi.size(), pi);
   BN_set_word(BN_value_two, 2);
 #ifdef _DEBUG
-      std::cout << "x:\t" << print_bn(x) << std::endl;
-      std::cout << "y:\t" << print_bn(y) << std::endl;
-      std::cout << "2:\t" << print_bn(BN_value_two) << std::endl;
+  std::cout << "x:\t" << print_bn(x) << std::endl;
+  std::cout << "y:\t" << print_bn(y) << std::endl;
+  std::cout << "2:\t" << print_bn(BN_value_two) << std::endl;
 #endif
 
   // hash x||y
@@ -83,28 +84,28 @@ bool VerifierWesolowski::operator()(const solution& sol) const {
   durations[3] = std::chrono::high_resolution_clock::now() - start_hash;
   start_mu_minus_hash = std::chrono::high_resolution_clock::now();
 #ifdef _DEBUG
-      //BN_set_word(p, 7);
-      std::cout << "p:\t" << print_bn(p) << std::endl;
+  //BN_set_word(p, 7);
+  std::cout << "p:\t" << print_bn(p) << std::endl;
 #endif
-  
+
   // compute r
   BN_mod_exp(r, BN_value_two, T, p, ctx);
 #ifdef _DEBUG
-      std::cout << "r:\t" << print_bn(r) << std::endl;
+  std::cout << "r:\t" << print_bn(r) << std::endl;
 #endif
 
   // compute h and compare to y
   BN_mod_exp(x, x, r, N, ctx);
 #ifdef _DEBUG
-      std::cout << "x:\t" << print_bn(x) << std::endl;
+  std::cout << "x:\t" << print_bn(x) << std::endl;
 #endif
   BN_mod_exp(pi, pi, p, N, ctx);
 #ifdef _DEBUG
-      std::cout << "pi:\t" << print_bn(pi) << std::endl;
+  std::cout << "pi:\t" << print_bn(pi) << std::endl;
 #endif
   BN_mod_mul(h, x, pi, N, ctx);
 #ifdef _DEBUG
-      std::cout << "h:\t" << print_bn(h) << std::endl;
+  std::cout << "h:\t" << print_bn(h) << std::endl;
 #endif
 
   bool result = BN_cmp(y, h) == 0;
@@ -112,4 +113,4 @@ bool VerifierWesolowski::operator()(const solution& sol) const {
   BN_CTX_end(ctx);
   return result;
 }
-
+} // namespace vdf

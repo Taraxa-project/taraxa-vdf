@@ -1,11 +1,12 @@
 #include "../include/RSWPuzzle.h"
 #include "../include/util.h"
-
+namespace vdf
+{
 RSWPuzzle::RSWPuzzle(
     const unsigned long _lambda,
     const unsigned long _t,
-    const bytevec& _x) :
-      lambda(_lambda), t(_t) {
+    const bytevec &_x) : lambda(_lambda), t(_t)
+{
   x = BN_secure_new();
   T = BN_secure_new();
 
@@ -17,13 +18,13 @@ RSWPuzzle::RSWPuzzle(
 RSWPuzzle::RSWPuzzle(
     const unsigned long _lambda,
     const unsigned long _t,
-    const bytevec& _x,
-    const bytevec& _N) :
-      RSWPuzzle(_lambda, _t, _x) {
+    const bytevec &_x,
+    const bytevec &_N) : RSWPuzzle(_lambda, _t, _x)
+{
   N = BN_secure_new();
   BN_bin2bn(_N.data(), _N.size(), N);
 
-  BN_CTX* ctx = BN_CTX_secure_new();
+  BN_CTX *ctx = BN_CTX_secure_new();
   BN_CTX_start(ctx);
   BN_mod(x, x, N, ctx);
   BN_CTX_end(ctx);
@@ -33,19 +34,19 @@ RSWPuzzle::RSWPuzzle(
 RSWPuzzle::RSWPuzzle(
     const unsigned long _lambda,
     const unsigned long _t,
-    const bytevec& _x,
-    const unsigned long _lambdaRSW) :
-      RSWPuzzle(_lambda, _t, _x) {
+    const bytevec &_x,
+    const unsigned long _lambdaRSW) : RSWPuzzle(_lambda, _t, _x)
+{
   N = BN_secure_new();
 
-  BN_CTX* ctx = BN_CTX_secure_new();
+  BN_CTX *ctx = BN_CTX_secure_new();
   BN_CTX_start(ctx);
-  BIGNUM* p, * q;
+  BIGNUM *p, *q;
   p = BN_CTX_get(ctx);
   q = BN_CTX_get(ctx);
 
-  BN_generate_prime_ex(p, _lambdaRSW/2, 1, NULL, NULL, NULL);
-  BN_generate_prime_ex(q, _lambdaRSW/2, 1, NULL, NULL, NULL);
+  BN_generate_prime_ex(p, _lambdaRSW / 2, 1, NULL, NULL, NULL);
+  BN_generate_prime_ex(q, _lambdaRSW / 2, 1, NULL, NULL, NULL);
   BN_mul(N, p, q, ctx);
 
   BN_mod(x, x, N, ctx);
@@ -54,8 +55,8 @@ RSWPuzzle::RSWPuzzle(
   BN_CTX_free(ctx);
 }
 
-RSWPuzzle::RSWPuzzle(const RSWPuzzle& other) :
-    t(other.t), lambda(other.lambda) {
+RSWPuzzle::RSWPuzzle(const RSWPuzzle &other) : t(other.t), lambda(other.lambda)
+{
   N = BN_secure_new();
   x = BN_secure_new();
   T = BN_secure_new();
@@ -64,29 +65,35 @@ RSWPuzzle::RSWPuzzle(const RSWPuzzle& other) :
   BN_copy(T, other.T);
 }
 
-RSWPuzzle::~RSWPuzzle() {
+RSWPuzzle::~RSWPuzzle()
+{
   BN_clear_free(T);
   BN_clear_free(x);
   BN_clear_free(N);
 }
 
-bytevec RSWPuzzle::get_N() const {
+bytevec RSWPuzzle::get_N() const
+{
   return bn2bytevec(N);
 }
 
-bytevec RSWPuzzle::get_x() const {
+bytevec RSWPuzzle::get_x() const
+{
   return bn2bytevec(x);
 }
 
-bytevec RSWPuzzle::get_T() const {
+bytevec RSWPuzzle::get_T() const
+{
   return bn2bytevec(T);
 }
 
-unsigned long RSWPuzzle::get_log2T() const {
+unsigned long RSWPuzzle::get_log2T() const
+{
   return t;
 }
 
-unsigned long RSWPuzzle::get_lambda() const {
+unsigned long RSWPuzzle::get_lambda() const
+{
   return lambda;
 }
-
+} // namespace vdf

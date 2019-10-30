@@ -7,6 +7,7 @@ CPPFLAGS = -I$(LOCAL_FOLDER)/include -I$(OPENSSL_HOME)/include -std=c++17 # -D_D
 CFLAGS = 
 CXXFLAGS = -g -O0 -fPIC -fexceptions 
 TARGET = lib/libvdf.so
+STATIC = lib/libvdf.a
 
 OPENSSL_LDFLAGS = -L$(OPENSSL_HOME)/lib -lssl -lcrypto -Wl,-rpath=$(LOCAL_FOLDER)/lib
 PKG_LDFLAGS = -Llib -lvdf -Wl,-rpath=$(PKG_FOLDER)/lib 
@@ -35,11 +36,15 @@ timingbin = $(timingsrc:.cpp=.out)
 timingdep = $(timingsrc:.cpp=.d)
 
 .PHONY: all
-all: $(TARGET) test timing
+all: $(TARGET) $(STATIC) test timing
 
 $(TARGET): $(obj)
 	mkdir -p lib
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -shared -o $@ $^ $(LDFLAGS) 
+#	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -shared -o $@ $^ $(LDFLAGS) 
+
+$(STATIC): $(obj)
+	mkdir -p lib
+	ar rcs  $@ $^ 
 
 obj/%.o: src/%.cpp
 	mkdir -p obj
@@ -53,8 +58,8 @@ test/%.d: test/%.cpp
 
 -include $(testdep)
 
-test/%.out: test/%.cpp $(TARGET) test/%.d
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $< $(TEST_LDFLAGS)
+test/%.out: test/%.cpp  test/%.d
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $< $(TEST_LDFLAGS)  
 
 .PHONY: timing
 timing: $(timingbin) $(timingdep)
@@ -64,8 +69,8 @@ timing: $(timingbin) $(timingdep)
 
 -include $(timingdep)
 
-./%.out: ./%.cpp $(TARGET) ./%.d
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $< $(TEST_LDFLAGS)
+./%.out: ./%.cpp ./%.d
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $< $(TEST_LDFLAGS)  
 
 .PHONY: run
 run: $(testbin)

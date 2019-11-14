@@ -44,7 +44,7 @@ test/%.d: test/%.cpp
 
 -include $(testdep)
 
-test/%.out: test/%.cpp  test/%.d
+test/%.out: test/%.cpp  test/%.d $(STATIC)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $< $(TEST_LDFLAGS)  
 
 .PHONY: timing
@@ -55,7 +55,7 @@ timing: $(timingbin) $(timingdep)
 
 -include $(timingdep)
 
-./%.out: ./%.cpp ./%.d
+./%.out: ./%.cpp ./%.d $(STATIC)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $< $(TEST_LDFLAGS)  
 
 .PHONY: run

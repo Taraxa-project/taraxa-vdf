@@ -67,10 +67,13 @@ bool VerifierWesolowski::operator()(const solution &sol) const
   BN_bin2bn(_y.data(), (int)_y.size(), y);
   BN_bin2bn(_pi.data(), (int)_pi.size(), pi);
   BN_set_word(BN_value_two, 2);
+
 #ifdef _DEBUG
-  std::cout << "x:\t" << print_bn(x) << std::endl;
-  std::cout << "y:\t" << print_bn(y) << std::endl;
-  std::cout << "2:\t" << print_bn(BN_value_two) << std::endl;
+  std::cout << "verifier x:\t" << print_bn(x) << std::endl;
+  std::cout << "verifier y:\t" << print_bn(y) << std::endl;
+  std::cout << "verifier 2:\t" << print_bn(BN_value_two) << std::endl;
+  std::cout << "verifier sol.first " << print_bytevec(_pi) << std::endl;
+  std::cout << "verifier sol.second " << print_bytevec(_y) << std::endl;
 #endif
 
   // hash x||y
@@ -85,30 +88,30 @@ bool VerifierWesolowski::operator()(const solution &sol) const
   start_mu_minus_hash = std::chrono::high_resolution_clock::now();
 #ifdef _DEBUG
   //BN_set_word(p, 7);
-  std::cout << "p:\t" << print_bn(p) << std::endl;
+  std::cout << "verifier p:\t" << print_bn(p) << std::endl;
 #endif
 
   // compute r
   BN_mod_exp(r, BN_value_two, T, p, ctx);
 #ifdef _DEBUG
-  std::cout << "r:\t" << print_bn(r) << std::endl;
+  std::cout << "verifier r:\t" << print_bn(r) << std::endl;
 #endif
 
   // compute h and compare to y
   BN_mod_exp(x, x, r, N, ctx);
 #ifdef _DEBUG
-  std::cout << "x:\t" << print_bn(x) << std::endl;
+  std::cout << "verifier x:\t" << print_bn(x) << std::endl;
 #endif
   BN_mod_exp(pi, pi, p, N, ctx);
 #ifdef _DEBUG
-  std::cout << "pi:\t" << print_bn(pi) << std::endl;
+  std::cout << "verifier pi:\t" << print_bn(pi) << std::endl;
 #endif
   BN_mod_mul(h, x, pi, N, ctx);
 #ifdef _DEBUG
-  std::cout << "h:\t" << print_bn(h) << std::endl;
+  std::cout << "verifier h:\t" << print_bn(h) << std::endl;
 #endif
 
-  bool result = BN_cmp(y, h) == 0;
+  bool result = (!BN_is_zero(y)) && (!BN_is_zero(pi)) && BN_cmp(y, h) == 0;
   durations[2] += std::chrono::high_resolution_clock::now() - start_mu_minus_hash;
   BN_CTX_end(ctx);
   return result;

@@ -1,5 +1,6 @@
 #include "../include/RSWPuzzle.h"
 #include "../include/util.h"
+#include <iostream>
 namespace vdf
 {
 RSWPuzzle::RSWPuzzle(
@@ -29,6 +30,11 @@ RSWPuzzle::RSWPuzzle(
   BN_mod(x, x, N, ctx);
   BN_CTX_end(ctx);
   BN_CTX_free(ctx);
+#ifdef _DEBUG
+  std::cout << "RSWPuzzle x:\t" << print_bn(x) << std::endl;
+  std::cout << "RSWPuzzle T:\t" << print_bn(T) << std::endl;
+  std::cout << "RSWPuzzle N:\t" << print_bn(N) << std::endl;
+#endif
 }
 
 RSWPuzzle::RSWPuzzle(
@@ -50,7 +56,13 @@ RSWPuzzle::RSWPuzzle(
   BN_mul(N, p, q, ctx);
 
   BN_mod(x, x, N, ctx);
-
+#ifdef _DEBUG
+  std::cout << "RSWPuzzle2 x:\t" << print_bn(x) << std::endl;
+  std::cout << "RSWPuzzle2 T:\t" << print_bn(T) << std::endl;
+  std::cout << "RSWPuzzle2 p:\t" << print_bn(p) << std::endl;
+  std::cout << "RSWPuzzle2 q:\t" << print_bn(q) << std::endl;
+  std::cout << "RSWPuzzle2 N:\t" << print_bn(N) << std::endl;
+#endif
   BN_CTX_end(ctx);
   BN_CTX_free(ctx);
 }

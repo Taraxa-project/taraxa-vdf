@@ -66,6 +66,7 @@ int main(int argc, char *argv[])
   ProverWesolowski prover2;
   const auto sol2 = prover2(verifier2);
   auto sol21 = sol2;
+  auto sol22 = sol2;
 
   if (verifier2(sol2))
   {
@@ -80,11 +81,22 @@ int main(int argc, char *argv[])
 
   if (verifier2(sol21))
   {
-    std::cout << "4. Oh no: Verified" << std::endl;
+    std::cout << "4.1 Oh no: Verified" << std::endl;
   }
   else
   {
-    std::cout << "4. Good: Falsified" << std::endl;
+    std::cout << "4.1 Good: Falsified" << std::endl;
+  } /* END TEST 2 */
+
+  sol22.second[2]++; // ruin the proof
+
+  if (verifier2(sol22))
+  {
+    std::cout << "4.2 Oh no: Verified" << std::endl;
+  }
+  else
+  {
+    std::cout << "4.2 Good: Falsified" << std::endl;
   } /* END TEST 2 */
 
   /*  TEST 3  different d_max */

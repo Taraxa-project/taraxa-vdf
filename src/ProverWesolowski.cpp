@@ -20,7 +20,6 @@ ProverWesolowski::operator()(const VerifierWesolowski &verifier) const
       const bytevec _T = puzzle.get_T();
       const bytevec _N = puzzle.get_N();
       const bytevec _x = puzzle.get_x();
-
       // helper variables
       const auto start_allocation = std::chrono::high_resolution_clock::now();
       BIGNUM *x = BN_CTX_get(ctx);
@@ -53,7 +52,10 @@ ProverWesolowski::operator()(const VerifierWesolowski &verifier) const
       durations[1] = std::chrono::high_resolution_clock::now() - start_y;
       bn2bytevec(y, _y);
 #ifdef _DEBUG
-      std::cout << "y:\t" << print_bn(y) << std::endl;
+      std::cout << "prover (byte vector) _x:\t" << print_bytevec(_x) << std::endl;
+      std::cout << "prover (byte vector) _T:\t" << print_bytevec(_T) << std::endl;
+      std::cout << "prover (byte vector) _N:\t" << print_bytevec(_N) << std::endl;
+      std::cout << "prover y:\t" << print_bn(y) << std::endl;
 #endif
 
       // hash x||y
@@ -68,38 +70,38 @@ ProverWesolowski::operator()(const VerifierWesolowski &verifier) const
       start_mu_minus_hash = std::chrono::high_resolution_clock::now();
 #ifdef _DEBUG
       //BN_set_word(p, 7);
-      std::cout << "p:\t" << print_bn(p) << std::endl;
+      std::cout << "prover p:\t" << print_bn(p) << std::endl;
 #endif
 
       // compute pi
       BN_one(r);
 #ifdef _DEBUG
-      std::cout << "r:\t" << print_bn(r) << std::endl;
+      std::cout << "prover r:\t" << print_bn(r) << std::endl;
 #endif
       BN_one(pi);
 #ifdef _DEBUG
-      std::cout << "pi:\t" << print_bn(pi) << std::endl;
+      std::cout << "prover pi:\t" << print_bn(pi) << std::endl;
 #endif
       for (BN_one(tt); BN_cmp(tt, T) <= 0; BN_add(tt, tt, BN_value_one()))
       {
 #ifdef _DEBUG
-            std::cout << "tt:\t" << print_bn(tt) << std::endl;
+            std::cout << "prover tt:\t" << print_bn(tt) << std::endl;
 #endif
             BN_mod_sqr(pi, pi, N, ctx);
 #ifdef _DEBUG
-            std::cout << "pi:\t" << print_bn(pi) << std::endl;
+            std::cout << "prover pi:\t" << print_bn(pi) << std::endl;
 #endif
             BN_lshift1(r, r);
 #ifdef _DEBUG
-            std::cout << "r:\t" << print_bn(r) << std::endl;
+            std::cout << "prover r:\t" << print_bn(r) << std::endl;
 #endif
             if (BN_cmp(r, p) >= 0)
             {
                   BN_sub(r, r, p);
                   BN_mod_mul(pi, pi, x, N, ctx);
 #ifdef _DEBUG
-                  std::cout << "r:\t" << print_bn(r) << std::endl;
-                  std::cout << "pi:\t" << print_bn(pi) << std::endl;
+                  std::cout << "prover r:\t" << print_bn(r) << std::endl;
+                  std::cout << "prover pi:\t" << print_bn(pi) << std::endl;
 #endif
             }
       }

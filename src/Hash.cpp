@@ -1,6 +1,8 @@
 #include "../include/Hash.h"
 #include <exception>
+#include <stdexcept>
 #include <openssl/rand.h>
+
 namespace vdf
 {
 Hash::Hash(const unsigned long _lambda, const unsigned int _key_size, const unsigned int _block_size) : lambda(_lambda), ctx(EVP_CIPHER_CTX_free_ptr(EVP_CIPHER_CTX_new(), ::EVP_CIPHER_CTX_free))

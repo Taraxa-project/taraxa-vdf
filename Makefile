@@ -1,8 +1,6 @@
 #Please specify OPENSSL_HOME to your openssl@1.1.1
 OPENSSL_HOME = /usr/local
-CC = gcc
-CXX = g++
-CPPFLAGS = -I./include -I$(OPENSSL_HOME)/include -std=c++17 # -D_DEBUG
+CPPFLAGS = -I./include -I$(OPENSSL_HOME)/include -std=c++20 # -D_DEBUG
 CFLAGS =
 CXXFLAGS = -O3 -fexceptions
 STATIC = lib/libvdf.a

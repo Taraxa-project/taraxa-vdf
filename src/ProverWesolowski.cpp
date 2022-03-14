@@ -2,6 +2,11 @@
 
 namespace vdf
 {
+
+void ProverWesolowski::cancel() {
+      canceled = true;
+}
+
 ProverWesolowski::ProverWesolowski() : durations(4),
                                        ctx_ptr(BN_CTX_free_ptr(BN_CTX_secure_new(), ::BN_CTX_free)) {}
 
@@ -48,6 +53,7 @@ ProverWesolowski::operator()(const VerifierWesolowski &verifier) const
       for (BN_one(tt); BN_cmp(tt, T) <= 0; BN_add(tt, tt, BN_value_one()))
       {
             BN_mod_sqr(y, y, N, ctx);
+            if(canceled) return make_pair(_pi, _y);
       }
       durations[1] = std::chrono::high_resolution_clock::now() - start_y;
       bn2bytevec(y, _y);

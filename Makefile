@@ -19,20 +19,17 @@ obj = $(objtmp:.cpp=.o)
 testsrc = $(wildcard test/*.cpp)
 testbin = $(testsrc:.cpp=.out)
 testdep = $(testsrc:.cpp=.d)
-timingsrc = $(wildcard timing_*.cpp)
-timingbin = $(timingsrc:.cpp=.out)
-timingdep = $(timingsrc:.cpp=.d)
 
 .PHONY: all
-all: $(STATIC) test timing 
+all: $(STATIC) test
 
 $(STATIC): $(obj)
 	mkdir -p lib
-	ar rcs  $@ $^ 
+	ar rcs  $@ $^
 
 obj/%.o: src/%.cpp
 	mkdir -p obj
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ -c $< 
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ -c $<
 
 .PHONY: test
 test: $(testbin) $(testdep)
@@ -43,10 +40,7 @@ test/%.d: test/%.cpp
 -include $(testdep)
 
 test/%.out: test/%.cpp  test/%.d $(STATIC)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $< $(TEST_LDFLAGS)  
-
-.PHONY: timing
-timing: $(timingbin) $(timingdep)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $< $(TEST_LDFLAGS)
 
 ./%.d: ./%.cpp
 	$(CXX) $(CPPFLAGS) $(CXXLAGS) $< -MM -MT $(@:.d=.o) >$@
@@ -54,7 +48,7 @@ timing: $(timingbin) $(timingdep)
 -include $(timingdep)
 
 ./%.out: ./%.cpp ./%.d $(STATIC)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $< $(TEST_LDFLAGS)  
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $< $(TEST_LDFLAGS)
 
 .PHONY: run
 run: $(testbin)
@@ -65,5 +59,5 @@ run: $(testbin)
 
 .PHONY: clean
 clean:
-	rm -f $(obj) $(TARGET) $(testbin) $(testdep) $(timingbin) $(timingdep) 
+	rm -f $(obj) $(TARGET) $(testbin) $(testdep) $(timingbin) $(timingdep)
 

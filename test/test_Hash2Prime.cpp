@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 
     hash(p, q);
 
-    int isprime = BN_is_prime_ex(q, BN_prime_checks, ctx, NULL);
+    const auto isprime = BN_check_prime(q, ctx, NULL);
     std::cout << print_bn(q) << " is " << (isprime == 0 ? "not" : (isprime == 1 ? "maybe" : "certainly")) << " a prime." << std::endl;
   }
 
